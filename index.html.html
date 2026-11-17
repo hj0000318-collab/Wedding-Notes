@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>웨딩박람회 스드메 비교 & 체크리스트</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Pretendard & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        ivory: {
+                            50: '#FDFBF7',
+                            100: '#F9F5EE',
+                            200: '#F2E9DB',
+                        },
+                        rosegold: {
+                            100: '#FCECEB',
+                            400: '#D48C86',
+                            500: '#C2746E',
+                            600: '#A65C56',
+                        },
+                        indigo: {
+                            900: '#1E2538',
+                            950: '#141926',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FDFBF7;
+            color: #1E2538;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-28">
+
+    <!-- 상단 고정 헤더 -->
+    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-ivory-200 shadow-sm">
+        <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-full bg-rosegold-100 text-rosegold-600 flex items-center justify-center font-bold text-sm">💍</span>
+                <div>
+                    <h1 class="text-base font-bold text-indigo-900 leading-tight">스드메 박람회 비교노트</h1>
+                    <p class="text-[11px] text-gray-500">자동 저장됨 · 업체별 실결제 금액 비교</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button id="toggleViewBtn" onclick="toggleViewMode()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-indigo-900 text-white shadow-sm active:scale-95 transition">
+                    📊 한눈에 비교하기
+                </button>
+            </div>
+        </div>
+
+        <!-- 업체 선택 탭 바 -->
+        <div id="vendorTabsContainer" class="max-w-2xl mx-auto px-4 py-2 bg-ivory-50 border-t border-ivory-200 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        </div>
+    </header>
+
+    <!-- 메인 콘텐츠 영역 -->
+    <main class="max-w-2xl mx-auto px-4 pt-4">
+        
+        <!-- 1. 업체별 상세 입력 및 체크리스트 뷰 -->
+        <div id="detailView" class="space-y-4">
+            <!-- 업체 기본 정보 카드 -->
+            <section class="bg-white rounded-2xl p-4 shadow-sm border border-ivory-200">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-rosegold-600 bg-rosegold-100 px-2.5 py-1 rounded-lg">상담 업체 기본정보</span>
+                    <button onclick="deleteCurrentVendor()" class="text-xs text-gray-400 hover:text-red-500 px-2 py-1 rounded-lg transition">
+                        🗑️ 업체 삭제
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">업체명 / 웨딩컨설팅</label>
+                        <input type="text" id="vendorNameInput" placeholder="예: A웨딩 / OO박람회 부스" 
+                            class="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-rosegold-500 focus:outline-none text-base sm:text-sm font-semibold bg-ivory-50/50"
+                            oninput="updateVendorField('name', this.value)">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">담당 플래너 / 연락처</label>
+                        <input type="text" id="plannerNameInput" placeholder="예: 김OO 플래너 (동행)" 
+                            class="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-rosegold-500 focus:outline-none text-base sm:text-sm bg-ivory-50/50"
+                            oninput="updateVendorField('planner', this.value)">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">스튜디오명</label>
+                        <input type="text" id="studioNameInput" placeholder="예: OO스튜디오" 
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:border-rosegold-500 focus:outline-none text-base sm:text-sm"
+                            oninput="updateVendorField('studio', this.value)">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">웨딩샵 (드레스·헤메)</label>
+                        <input type="text" id="dressShopInput" placeholder="예: OO웨딩샵" 
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:border-rosegold-500 focus:outline-none text-base sm:text-sm"
+                            oninput="updateVendorField('dressShop', this.value)">
+                    </div>
+                </div>
+
+                <!-- 기본 패키지 견적 금액 -->
+                <div class="bg-indigo-900 text-white rounded-xl p-3.5 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-indigo-200 font-medium">기본 스드메 패키지 견적가</p>
+                        <p class="text-[11px] text-indigo-300 mt-0.5">계약서상 기본 안내 금액</p>
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
+                        <input type="number" id="basePriceInput" placeholder="0" inputmode="numeric"
+                            class="w-20 bg-transparent text-right text-lg font-bold text-white focus:outline-none"
+                            oninput="updateVendorField('basePrice', Number(this.value) || 0)">
+                        <span class="text-sm font-medium text-indigo-100">만원</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 섹션 1: 계약서 포함 여부 확인 -->
+            <section class="bg-white rounded-2xl p-4 shadow-sm border border-ivory-200">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h2 class="text-sm font-bold text-indigo-900">1. 계약서 포함 여부 확인</h2>
+                        <p class="text-xs text-gray-500">포함 시 체크(0원) · 미포함 시 체크 해제 후 추가금 입력(총액 합산)</p>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <span id="sec1ExtraBadge" class="text-xs font-bold px-2 py-1 rounded-full bg-amber-100 text-amber-800 hidden">+0만원</span>
+                        <span id="sec1Badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-rosegold-100 text-rosegold-600">0/6</span>
+                    </div>
+                </div>
+                <div id="section1List" class="space-y-2.5"></div>
+            </section>
+
+            <!-- 섹션 2: 필수 별도 비용 확인 (자동 합산) -->
+            <section class="bg-white rounded-2xl p-4 shadow-sm border border-ivory-200">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h2 class="text-sm font-bold text-indigo-900">2. 필수 별도 비용 확인 <span class="text-rosegold-600">(현장 결제)</span></h2>
+                        <p class="text-xs text-gray-500">안내받은 추가금을 입력하면 총액에 자동 합산됩니다</p>
+                    </div>
+                    <span id="sec2TotalBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">+0만원</span>
+                </div>
+                <div id="section2List" class="space-y-2.5"></div>
+            </section>
+
+            <!-- 섹션 3: 선택 옵션 비용 확인 -->
+            <section class="bg-white rounded-2xl p-4 shadow-sm border border-ivory-200">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h2 class="text-sm font-bold text-indigo-900">3. 선택 옵션 비용 확인</h2>
+                        <p class="text-xs text-gray-500">필요 시 선택하는 항목 (체크 시 총액에 합산)</p>
+                    </div>
+                    <span id="sec3TotalBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-700">+0만원</span>
+                </div>
+                <div id="section3List" class="space-y-2.5"></div>
+            </section>
+
+            <!-- 섹션 4: 계약 전 최종 확인 사항 -->
+            <section class="bg-white rounded-2xl p-4 shadow-sm border border-ivory-200">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h2 class="text-sm font-bold text-indigo-900">4. 계약 전 최종 확인 사항</h2>
+                        <p class="text-xs text-gray-500">플래너에게 꼭 물어보고 체크하세요</p>
+                    </div>
+                    <span id="sec4Badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-900">0/3</span>
+                </div>
+                <div id="section4List" class="space-y-2"></div>
+            </section>
+
+            <!-- 구두 약속 & 특약 메모 -->
+            <section class="bg-white rounded-2xl p-4 shadow-sm border border-ivory-200">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-sm font-bold text-indigo-900">📝 구두 약속 & 계약서 특약 메모</h2>
+                    <span class="text-[11px] text-rosegold-600 font-medium">계약서 비고란 기재 필수!</span>
+                </div>
+                <textarea id="memoInput" rows="3" placeholder="예: 피팅비 2회 면제 약속, 촬영용 미니드레스 1벌 서비스, 본식 부케 업그레이드 포함, 당일 계약 조건 10만원 추가 할인 등"
+                    class="w-full p-3 rounded-xl border border-gray-200 focus:border-rosegold-500 focus:outline-none text-base sm:text-sm bg-ivory-50/50"
+                    oninput="updateVendorField('memo', this.value)"></textarea>
+            </section>
+        </div>
+
+        <!-- 2. 한눈에 비교하기 뷰 -->
+        <div id="compareView" class="hidden space-y-4">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-ivory-200">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h2 class="text-base font-bold text-indigo-900">상담 업체 한눈에 비교하기</h2>
+                        <p class="text-xs text-gray-500">기본 견적 + 미포함 항목 + 필수 별도 + 선택 옵션을 합산한 실제 예상 총액입니다.</p>
+                    </div>
+                    <button onclick="copySummaryToClipboard()" class="px-3 py-2 rounded-xl bg-rosegold-500 hover:bg-rosegold-600 text-white text-xs font-semibold shadow-sm active:scale-95 transition flex items-center gap-1 shrink-0">
+                        📋 카톡 공유용 복사
+                    </button>
+                </div>
+            </div>
+
+            <div id="compareCardsContainer" class="space-y-3"></div>
+
+            <div class="text-center pt-2">
+                <button onclick="toggleViewMode()" class="px-5 py-3 rounded-xl bg-indigo-900 text-white text-sm font-semibold shadow-md">
+                    ← 업체별 상세 체크리스트로 돌아가기
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 하단 고정 실시간 총액 계산 바 -->
+    <div id="bottomSummaryBar" class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-ivory-200 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-1.5 text-[11px] text-gray-500">
+                    <span>기본 <strong id="barBasePrice" class="text-gray-800">0</strong>만</span>
+                    <span>+</span>
+                    <span>필수·미포함 <strong id="barMandatoryPrice" class="text-amber-700">0</strong>만</span>
+                    <span>+</span>
+                    <span>선택 <strong id="barOptionalPrice" class="text-gray-800">0</strong>만</span>
+                </div>
+                <div class="flex items-baseline gap-1 mt-0.5">
+                    <span class="text-xs font-semibold text-indigo-900">실제 예상 총액:</span>
+                    <span id="barTotalPrice" class="text-xl font-extrabold text-rosegold-600">0</span>
+                    <span class="text-sm font-bold text-rosegold-600">만원</span>
+                </div>
+            </div>
+            <button onclick="toggleViewMode()" class="px-4 py-2.5 rounded-xl bg-indigo-900 text-white text-xs font-bold shadow-sm active:scale-95 transition">
+                전체 비교 (<span id="vendorCountBadge">1</span>)
+            </button>
+        </div>
+    </div>
+
+    <!-- 토스트 메시지 -->
+    <div id="toastBox" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-opacity duration-300">
+        <div id="toastMessage" class="bg-indigo-950 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg">
+            알림 메시지
+        </div>
+    </div>
+
+    <!-- 삭제 확인 모달 -->
+    <div id="confirmModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border border-ivory-200">
+            <h3 id="modalTitle" class="text-base font-bold text-indigo-900 mb-1.5">업체 삭제 확인</h3>
+            <p id="modalDesc" class="text-xs text-gray-600 mb-4 leading-relaxed">정말 이 업체의 상담 기록을 삭제하시겠습니까?</p>
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeConfirmModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-100 text-gray-700">취소</button>
+                <button id="modalConfirmBtn" class="px-4 py-2 rounded-xl text-xs font-semibold bg-red-500 text-white">삭제하기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CHECKLIST_SCHEMA = {
+            section1: [
+                { id: 's1_dress_shoot', label: '촬영 드레스 3벌 + 미니/캐주얼 1벌', hint: '화이트 2벌 + 유색 1벌 + 서비스 1벌' },
+                { id: 's1_dress_main', label: '본식 드레스 1벌 + 신랑 턱시도(촬영·본식)', hint: '신랑 예복 대여 포함 여부' },
+                { id: 's1_hm', label: '헤어·메이크업 촬영 1회 + 본식 1회', hint: '담당 직급(실장/부원장/원장) 확인' },
+                { id: 's1_album', label: '스튜디오 20p 앨범 1권 + 기본 액자(20R)', hint: '기본 앨범 페이지 및 메인 액자 크기' },
+                { id: 's1_bouquet', label: '본식 부케 세트 포함', hint: '부케 + 부토니아 + 혼주 코사지(4~6개)' },
+                { id: 's1_fitting', label: '피팅비 면제 혜택 적용', hint: '드레스 투어 및 가봉 피팅비 무료 조건' }
+            ],
+            section2: [
+                { id: 's2_original', label: '스튜디오 원본·수정본 데이터 구매비', hint: '평균 30~45만원 (수정본 포함 여부 확인)', defaultCost: 35 },
+                { id: 's2_helper_shoot', label: '촬영 헬퍼비 (이모님 수고비)', hint: '평균 15~20만원 (촬영 당일 현금)', defaultCost: 15 },
+                { id: 's2_helper_main', label: '본식 헬퍼비 (이모님 수고비)', hint: '평균 15~20만원 (대구 외 출장비 확인)', defaultCost: 15 },
+                { id: 's2_dress_up', label: '드레스 업그레이드(라벨) 예상비', hint: '블랙라벨/신상 선택 시 30~100만원+', defaultCost: 0 },
+                { id: 's2_album_add', label: '앨범 페이지·액자 추가 예상비', hint: '페이지당 3~5만원 (셀렉 시 추가분)', defaultCost: 0 }
+            ],
+            section3: [
+                { id: 's3_hair_var', label: '스튜디오 헤어 변형 출장비', hint: '평균 15~25만원 (전문 출장 실장 부를 경우)', defaultCost: 20 },
+                { id: 's3_night_scene', label: '야간·옥상·로드 씬 촬영비', hint: '평균 10~20만원 (특화 씬 추가 시)', defaultCost: 15 },
+                { id: 's3_parents_hm', label: '혼주 헤어·메이크업 (양가 어머님 등)', hint: '1인당 10~15만원 (2인 기준 약 25만원)', defaultCost: 25 },
+                { id: 's3_main_snap', label: '본식 스냅·원판 사진 (미포함 시)', hint: '패키지 미포함 시 별도 60~100만원대', defaultCost: 0 }
+            ],
+            section4: [
+                { id: 's4_accompany', label: '플래너 직접 동행 범위 확인', hint: '드레스 투어, 촬영 가봉, 본식 가봉 동행 여부' },
+                { id: 's4_non_partner', label: '비제휴 업체 1곳 지정 시 진행 여부', hint: '일부 비제휴 진행 가능 여부 및 별도 수수료 유무' },
+                { id: 's4_penalty', label: '일정 변경 및 취소 시 위약금 규정', hint: '예식일 연기 또는 개인 사정 취소 시 환불 기준' }
+            ]
+        };
+
+        const STORAGE_KEY = 'daegu_wedding_sdm_vendors_v2';
+        let vendors = [];
+        let activeVendorId = null;
+        let isCompareView = false;
+
+        function createNewVendor(index) {
+            const sec1 = {};
+            CHECKLIST_SCHEMA.section1.forEach(item => {
+                sec1[item.id] = { checked: false, cost: 0 };
+            });
+
+            const sec2 = {};
+            CHECKLIST_SCHEMA.section2.forEach(item => {
+                sec2[item.id] = { checked: item.defaultCost > 0, cost: item.defaultCost };
+            });
+
+            const sec3 = {};
+            CHECKLIST_SCHEMA.section3.forEach(item => {
+                sec3[item.id] = { checked: false, cost: item.defaultCost };
+            });
+
+            const sec4 = {};
+            CHECKLIST_SCHEMA.section4.forEach(item => sec4[item.id] = false);
+
+            return {
+                id: 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                name: `업체 ${index}`,
+                planner: '',
+                studio: '',
+                dressShop: '',
+                basePrice: 0,
+                sec1,
+                sec2,
+                sec3,
+                sec4,
+                memo: ''
+            };
+        }
+
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        parsed.forEach(v => {
+                            if (v.sec1) {
+                                Object.keys(v.sec1).forEach(k => {
+                                    if (typeof v.sec1[k] === 'boolean') {
+                                        v.sec1[k] = { checked: v.sec1[k], cost: 0 };
+                                    }
+                                });
+                            }
+                        });
+                        vendors = parsed;
+                        activeVendorId = vendors[0].id;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('데이터 로드 오류:', e);
+            }
+            const initial = createNewVendor(1);
+            vendors = [initial];
+            activeVendorId = initial.id;
+            saveData();
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(vendors));
+            } catch (e) {
+                console.error('데이터 저장 오류:', e);
+            }
+        }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            const text = document.getElementById('toastMessage');
+            text.textContent = msg;
+            box.classList.remove('opacity-0');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                box.classList.add('opacity-0');
+            }, 2200);
+        }
+
+        function getActiveVendor() {
+            return vendors.find(v => v.id === activeVendorId) || vendors[0];
+        }
+
+        function calculateVendorCosts(vendor) {
+            const base = Number(vendor.basePrice) || 0;
+
+            // 섹션 1: 기본 포함 체크가 안 되어 있는데 금액을 입력한 경우 (미포함 추가금)
+            let sec1Extra = 0;
+            CHECKLIST_SCHEMA.section1.forEach(item => {
+                const entry = vendor.sec1[item.id];
+                if (entry && !entry.checked && Number(entry.cost) > 0) {
+                    sec1Extra += Number(entry.cost) || 0;
+                }
+            });
+
+            let mandatory = 0;
+            CHECKLIST_SCHEMA.section2.forEach(item => {
+                const entry = vendor.sec2[item.id];
+                if (entry && entry.checked) {
+                    mandatory += Number(entry.cost) || 0;
+                }
+            });
+
+            let optional = 0;
+            CHECKLIST_SCHEMA.section3.forEach(item => {
+                const entry = vendor.sec3[item.id];
+                if (entry && entry.checked) {
+                    optional += Number(entry.cost) || 0;
+                }
+            });
+
+            return {
+                base,
+                sec1Extra,
+                mandatory,
+                optional,
+                total: base + sec1Extra + mandatory + optional
+            };
+        }
+
+        function renderVendorTabs() {
+            const container = document.getElementById('vendorTabsContainer');
+            container.innerHTML = '';
+
+            vendors.forEach((v, idx) => {
+                const isActive = v.id === activeVendorId;
+                const btn = document.createElement('button');
+                btn.className = `shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                    isActive 
+                    ? 'bg-rosegold-500 text-white shadow-sm' 
+                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-ivory-100'
+                }`;
+                const displayName = v.name.trim() || `업체 ${idx + 1}`;
+                btn.innerHTML = `<span>${escapeHtml(displayName)}</span>`;
+                btn.onclick = () => {
+                    activeVendorId = v.id;
+                    if (isCompareView) toggleViewMode();
+                    renderAll();
+                };
+                container.appendChild(btn);
+            });
+
+            const addBtn = document.createElement('button');
+            addBtn.className = 'shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 active:scale-95 transition';
+            addBtn.innerHTML = '+ 업체 추가';
+            addBtn.onclick = addNewVendor;
+            container.appendChild(addBtn);
+
+            document.getElementById('vendorCountBadge').textContent = vendors.length;
+        }
+
+        function addNewVendor() {
+            const newV = createNewVendor(vendors.length + 1);
+            vendors.push(newV);
+            activeVendorId = newV.id;
+            saveData();
+            if (isCompareView) toggleViewMode();
+            renderAll();
+            showToast(`'${newV.name}' 탭이 추가되었습니다.`);
+        }
+
+        function deleteCurrentVendor() {
+            if (vendors.length <= 1) {
+                showToast('최소 1개의 업체 기록은 유지되어야 합니다.');
+                return;
+            }
+            const current = getActiveVendor();
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('modalTitle').textContent = `'${current.name}' 삭제`;
+            document.getElementById('modalDesc').textContent = '이 업체의 견적 및 체크리스트 기록을 삭제할까요? 삭제 후에는 복구할 수 없습니다.';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            document.getElementById('modalConfirmBtn').onclick = () => {
+                vendors = vendors.filter(v => v.id !== current.id);
+                activeVendorId = vendors[0].id;
+                saveData();
+                closeConfirmModal();
+                renderAll();
+                showToast('업체 기록이 삭제되었습니다.');
+            };
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function updateVendorField(field, value) {
+            const v = getActiveVendor();
+            v[field] = value;
+            saveData();
+            if (field === 'name') {
+                renderVendorTabs();
+            }
+            updateSummaryBadges();
+        }
+
+        function renderDetailView() {
+            const v = getActiveVendor();
+            if (!v) return;
+
+            document.getElementById('vendorNameInput').value = v.name;
+            document.getElementById('plannerNameInput').value = v.planner || '';
+            document.getElementById('studioNameInput').value = v.studio || '';
+            document.getElementById('dressShopInput').value = v.dressShop || '';
+            document.getElementById('basePriceInput').value = v.basePrice || '';
+            document.getElementById('memoInput').value = v.memo || '';
+
+            // 섹션 1 렌더링 (체크 + 가격 입력란)
+            const s1Container = document.getElementById('section1List');
+            s1Container.innerHTML = '';
+            CHECKLIST_SCHEMA.section1.forEach(item => {
+                const state = v.sec1[item.id] || { checked: false, cost: 0 };
+                const isExtraCost = !state.checked && Number(state.cost) > 0;
+                const row = document.createElement('div');
+                row.className = `p-3 rounded-xl border transition ${
+                    state.checked 
+                    ? 'bg-rosegold-100/40 border-rosegold-400' 
+                    : (isExtraCost ? 'bg-amber-50/60 border-amber-300' : 'bg-ivory-50/40 border-gray-200')
+                }`;
+                row.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <label class="flex items-start gap-2.5 cursor-pointer flex-1 select-none">
+                            <input type="checkbox" ${state.checked ? 'checked' : ''} class="mt-0.5 w-5 h-5 accent-rosegold-600 rounded cursor-pointer">
+                            <div>
+                                <p class="text-sm font-semibold ${state.checked ? 'text-indigo-900' : 'text-gray-800'}">${item.label}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">${item.hint}</p>
+                                <span class="inline-block mt-1 text-[11px] font-semibold ${
+                                    state.checked 
+                                    ? 'text-rosegold-600' 
+                                    : (isExtraCost ? 'text-amber-700' : 'text-gray-400')
+                                }">
+                                    ${state.checked ? '✓ 기본 견적 포함됨' : (isExtraCost ? '⚠️ 미포함 추가금 반영됨' : '미포함 시 우측에 금액 입력')}
+                                </span>
+                            </div>
+                        </label>
+                        <div class="flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-lg border border-gray-200 shrink-0">
+                            <input type="number" inputmode="numeric" value="${state.cost || ''}" placeholder="0"
+                                class="w-12 text-right text-base sm:text-sm font-bold text-indigo-900 focus:outline-none">
+                            <span class="text-xs text-gray-500">만원</span>
+                        </div>
+                    </div>
+                `;
+                const cb = row.querySelector('input[type="checkbox"]');
+                const numInput = row.querySelector('input[type="number"]');
+
+                cb.onchange = (e) => {
+                    v.sec1[item.id].checked = e.target.checked;
+                    saveData();
+                    renderDetailView();
+                };
+                numInput.oninput = (e) => {
+                    const val = Number(e.target.value) || 0;
+                    v.sec1[item.id].cost = val;
+                    saveData();
+                    updateSummaryBadges();
+                };
+                s1Container.appendChild(row);
+            });
+
+            // 섹션 2 렌더링
+            const s2Container = document.getElementById('section2List');
+            s2Container.innerHTML = '';
+            CHECKLIST_SCHEMA.section2.forEach(item => {
+                const state = v.sec2[item.id] || { checked: false, cost: item.defaultCost };
+                const row = document.createElement('div');
+                row.className = `p-3 rounded-xl border transition ${
+                    state.checked ? 'bg-amber-50/60 border-amber-300' : 'bg-ivory-50/40 border-gray-200'
+                }`;
+                row.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <label class="flex items-start gap-2.5 cursor-pointer flex-1 select-none">
+                            <input type="checkbox" ${state.checked ? 'checked' : ''} class="mt-0.5 w-5 h-5 accent-amber-600 rounded cursor-pointer">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-800">${item.label}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">${item.hint}</p>
+                            </div>
+                        </label>
+                        <div class="flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-lg border border-gray-200 shrink-0">
+                            <input type="number" inputmode="numeric" value="${state.cost || ''}" placeholder="0"
+                                class="w-12 text-right text-base sm:text-sm font-bold text-indigo-900 focus:outline-none">
+                            <span class="text-xs text-gray-500">만원</span>
+                        </div>
+                    </div>
+                `;
+                const cb = row.querySelector('input[type="checkbox"]');
+                const numInput = row.querySelector('input[type="number"]');
+
+                cb.onchange = (e) => {
+                    v.sec2[item.id].checked = e.target.checked;
+                    saveData();
+                    renderDetailView();
+                };
+                numInput.oninput = (e) => {
+                    const val = Number(e.target.value) || 0;
+                    v.sec2[item.id].cost = val;
+                    if (val > 0 && !v.sec2[item.id].checked) {
+                        v.sec2[item.id].checked = true;
+                        cb.checked = true;
+                    }
+                    saveData();
+                    updateSummaryBadges();
+                };
+                s2Container.appendChild(row);
+            });
+
+            // 섹션 3 렌더링
+            const s3Container = document.getElementById('section3List');
+            s3Container.innerHTML = '';
+            CHECKLIST_SCHEMA.section3.forEach(item => {
+                const state = v.sec3[item.id] || { checked: false, cost: item.defaultCost };
+                const row = document.createElement('div');
+                row.className = `p-3 rounded-xl border transition ${
+                    state.checked ? 'bg-indigo-50/60 border-indigo-300' : 'bg-ivory-50/40 border-gray-200'
+                }`;
+                row.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <label class="flex items-start gap-2.5 cursor-pointer flex-1 select-none">
+                            <input type="checkbox" ${state.checked ? 'checked' : ''} class="mt-0.5 w-5 h-5 accent-indigo-900 rounded cursor-pointer">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-800">${item.label}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">${item.hint}</p>
+                            </div>
+                        </label>
+                        <div class="flex items-center gap-1 bg-white px-2.5 py-1.5 rounded-lg border border-gray-200 shrink-0">
+                            <input type="number" inputmode="numeric" value="${state.cost || ''}" placeholder="0"
+                                class="w-12 text-right text-base sm:text-sm font-bold text-indigo-900 focus:outline-none">
+                            <span class="text-xs text-gray-500">만원</span>
+                        </div>
+                    </div>
+                `;
+                const cb = row.querySelector('input[type="checkbox"]');
+                const numInput = row.querySelector('input[type="number"]');
+
+                cb.onchange = (e) => {
+                    v.sec3[item.id].checked = e.target.checked;
+                    saveData();
+                    renderDetailView();
+                };
+                numInput.oninput = (e) => {
+                    const val = Number(e.target.value) || 0;
+                    v.sec3[item.id].cost = val;
+                    if (val > 0 && !v.sec3[item.id].checked) {
+                        v.sec3[item.id].checked = true;
+                        cb.checked = true;
+                    }
+                    saveData();
+                    updateSummaryBadges();
+                };
+                s3Container.appendChild(row);
+            });
+
+            // 섹션 4 렌더링
+            const s4Container = document.getElementById('section4List');
+            s4Container.innerHTML = '';
+            CHECKLIST_SCHEMA.section4.forEach(item => {
+                const checked = !!v.sec4[item.id];
+                const row = document.createElement('label');
+                row.className = `flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition select-none ${
+                    checked ? 'bg-indigo-50/70 border-indigo-400' : 'bg-ivory-50/40 border-gray-200'
+                }`;
+                row.innerHTML = `
+                    <input type="checkbox" ${checked ? 'checked' : ''} class="mt-0.5 w-5 h-5 accent-indigo-900 rounded cursor-pointer">
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-gray-800">${item.label}</p>
+                        <p class="text-xs text-gray-500 mt-0.5">${item.hint}</p>
+                    </div>
+                `;
+                row.querySelector('input').onchange = (e) => {
+                    v.sec4[item.id] = e.target.checked;
+                    saveData();
+                    renderDetailView();
+                };
+                s4Container.appendChild(row);
+            });
+
+            updateSummaryBadges();
+        }
+
+        function updateSummaryBadges() {
+            const v = getActiveVendor();
+            if (!v) return;
+
+            const s1Count = CHECKLIST_SCHEMA.section1.filter(i => v.sec1[i.id] && v.sec1[i.id].checked).length;
+            document.getElementById('sec1Badge').textContent = `${s1Count}/${CHECKLIST_SCHEMA.section1.length}`;
+
+            const s4Count = CHECKLIST_SCHEMA.section4.filter(i => v.sec4[i.id]).length;
+            document.getElementById('sec4Badge').textContent = `${s4Count}/${CHECKLIST_SCHEMA.section4.length}`;
+
+            const costs = calculateVendorCosts(v);
+            const sec1ExtraBadge = document.getElementById('sec1ExtraBadge');
+            if (costs.sec1Extra > 0) {
+                sec1ExtraBadge.textContent = `+${costs.sec1Extra}만원`;
+                sec1ExtraBadge.classList.remove('hidden');
+            } else {
+                sec1ExtraBadge.classList.add('hidden');
+            }
+
+            document.getElementById('sec2TotalBadge').textContent = `+${costs.mandatory}만원`;
+            document.getElementById('sec3TotalBadge').textContent = `+${costs.optional}만원`;
+
+            document.getElementById('barBasePrice').textContent = costs.base;
+            document.getElementById('barMandatoryPrice').textContent = costs.mandatory + costs.sec1Extra;
+            document.getElementById('barOptionalPrice').textContent = costs.optional;
+            document.getElementById('barTotalPrice').textContent = costs.total;
+        }
+
+        function renderCompareView() {
+            const container = document.getElementById('compareCardsContainer');
+            container.innerHTML = '';
+
+            const validTotals = vendors.map(v => calculateVendorCosts(v).total).filter(t => t > 0);
+            const minTotal = validTotals.length > 0 ? Math.min(...validTotals) : null;
+
+            vendors.forEach((v, idx) => {
+                const costs = calculateVendorCosts(v);
+                const s1Count = CHECKLIST_SCHEMA.section1.filter(i => v.sec1[i.id] && v.sec1[i.id].checked).length;
+                const s4Count = CHECKLIST_SCHEMA.section4.filter(i => v.sec4[i.id]).length;
+                const isLowest = minTotal !== null && costs.total === minTotal && vendors.length > 1;
+                const mandatoryTotal = costs.mandatory + costs.sec1Extra;
+
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl p-4 shadow-sm border transition ${
+                    isLowest ? 'border-rosegold-500 ring-2 ring-rosegold-100' : 'border-ivory-200'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-base font-bold text-indigo-900">${escapeHtml(v.name || `업체 ${idx+1}`)}</h3>
+                                ${isLowest ? '<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rosegold-500 text-white">최저 예상가</span>' : ''}
+                            </div>
+                            <p class="text-xs text-gray-500 mt-0.5">
+                                ${v.planner ? `담당: ${escapeHtml(v.planner)}` : '담당자 미입력'} 
+                                ${v.studio || v.dressShop ? ` · ${escapeHtml([v.studio, v.dressShop].filter(Boolean).join(' / '))}` : ''}
+                            </p>
+                        </div>
+                        <button onclick="selectVendorFromCompare('${v.id}')" class="px-2.5 py-1.5 rounded-lg bg-ivory-100 text-indigo-900 text-xs font-semibold hover:bg-ivory-200">
+                            수정하기
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2 py-3 text-center bg-ivory-50 rounded-xl my-3 px-2">
+                        <div>
+                            <p class="text-[11px] text-gray-500">기본 견적</p>
+                            <p class="text-sm font-bold text-gray-800 mt-0.5">${costs.base}만</p>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-amber-700">필수·미포함</p>
+                            <p class="text-sm font-bold text-amber-700 mt-0.5">+${mandatoryTotal}만</p>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-gray-500">선택 옵션</p>
+                            <p class="text-sm font-bold text-gray-700 mt-0.5">+${costs.optional}만</p>
+                        </div>
+                        <div class="border-l border-ivory-200">
+                            <p class="text-[11px] font-bold text-rosegold-600">실제 총액</p>
+                            <p class="text-base font-extrabold text-rosegold-600 mt-0.5">${costs.total}만</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 text-xs mb-2">
+                        <span class="px-2.5 py-1 rounded-lg bg-rosegold-100/70 text-rosegold-600 font-semibold">
+                            기본 포함 혜택: ${s1Count}/${CHECKLIST_SCHEMA.section1.length}개
+                        </span>
+                        <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-900 font-semibold">
+                            최종 조건 확인: ${s4Count}/${CHECKLIST_SCHEMA.section4.length}개
+                        </span>
+                    </div>
+
+                    ${v.memo ? `
+                        <div class="mt-2 p-2.5 rounded-xl bg-gray-50 border border-gray-100 text-xs text-gray-700 leading-relaxed">
+                            <span class="font-bold text-indigo-900">📝 메모:</span> ${escapeHtml(v.memo)}
+                        </div>
+                    ` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectVendorFromCompare(id) {
+            activeVendorId = id;
+            toggleViewMode();
+            renderAll();
+        }
+
+        function toggleViewMode() {
+            isCompareView = !isCompareView;
+            const detailView = document.getElementById('detailView');
+            const compareView = document.getElementById('compareView');
+            const tabsBar = document.getElementById('vendorTabsContainer');
+            const bottomBar = document.getElementById('bottomSummaryBar');
+            const toggleBtn = document.getElementById('toggleViewBtn');
+
+            if (isCompareView) {
+                detailView.classList.add('hidden');
+                tabsBar.classList.add('hidden');
+                bottomBar.classList.add('hidden');
+                compareView.classList.remove('hidden');
+                toggleBtn.textContent = '✏️ 체크리스트 편집';
+                renderCompareView();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                compareView.classList.add('hidden');
+                detailView.classList.remove('hidden');
+                tabsBar.classList.remove('hidden');
+                bottomBar.classList.remove('hidden');
+                toggleBtn.textContent = '📊 한눈에 비교하기';
+                renderAll();
+            }
+        }
+
+        function copySummaryToClipboard() {
+            let lines = ['💍 [웨딩박람회 스드메 비교 요약]', ''];
+            vendors.forEach((v, idx) => {
+                const c = calculateVendorCosts(v);
+                const mandatoryTotal = c.mandatory + c.sec1Extra;
+                const s1Count = CHECKLIST_SCHEMA.section1.filter(i => v.sec1[i.id] && v.sec1[i.id].checked).length;
+                lines.push(`■ ${idx + 1}. ${v.name || `업체 ${idx + 1}`} ${v.planner ? `(${v.planner})` : ''}`);
+                if (v.studio || v.dressShop) {
+                    lines.push(`  - 구성: ${[v.studio, v.dressShop].filter(Boolean).join(' / ')}`);
+                }
+                lines.push(`  - 견적: 기본 ${c.base}만 + 필수·미포함 ${mandatoryTotal}만 + 선택 ${c.optional}만 = 총 ${c.total}만원`);
+                lines.push(`  - 포함혜택: ${s1Count}/${CHECKLIST_SCHEMA.section1.length}개 확인됨`);
+                if (v.memo) {
+                    lines.push(`  - 메모: ${v.memo}`);
+                }
+                lines.push('');
+            });
+
+            const text = lines.join('\n');
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('비교 요약 내용이 복사되었습니다! 카톡에 붙여넣기 하세요.');
+            } catch (err) {
+                showToast('복사에 실패했습니다.');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderAll() {
+            renderVendorTabs();
+            renderDetailView();
+        }
+
+        window.onload = function() {
+            loadData();
+            renderAll();
+        };
+    </script>
+</body>
+</html>
